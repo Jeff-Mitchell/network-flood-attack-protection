@@ -14,7 +14,7 @@ The setup of this project is to launch an attack from a1 to v1 and have the pyth
 
 ### Network Topology
 
-![Network Topology](PSH Flood Attack Projetc Topology.png)
+![Network Topology](PSH Flood Attack Project Topology.png)
 
 #### How The Code Works
 
