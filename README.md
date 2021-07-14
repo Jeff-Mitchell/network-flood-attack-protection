@@ -12,6 +12,10 @@ This is a python sdn application intended to be run through sdn-cockpit. The pyt
 
 The setup of this project is to launch an attack from a1 to v1 and have the python application running on the controller / switch detect the PSH flood atttack and respond accordinly while having minimal disturbances to other users on the network. the application works by using parts of learning switch to automatically allow traffic to flow in the network to begin with. The applications the works by extracted different pieces of data from the packets flowing through the network. from the python file we can see that the ethernet, ip and tcp protocols are extracted to get information such as source and destination addresses (both MAC and IP) and In ports and Out ports to correctly forward traffic automattically.
 
+### Network Topology
+
+![Network Topology](PSH Flood Attack Projetc Topology.png)
+
 #### How The Code Works
 
 A total count of all packets is used to calculate a instant network load to help with analysis. All of the above allows our controller to work naturally with all hosts on the network seamlessly. Now we can begin to narrow down the paacket type that we are going to look at. Using the previously extracted TCP data fromeach packet we can further refine to look for packets that meet the specific TCP_PSH flag we are looking for.
@@ -33,11 +37,11 @@ If this was a real attack and the PSH flood starts again after the first tempora
 The temporary bans and warning are put in place by calling the `launch_temp_countermeasures()` function and passing in the attackers MAC address as an argument. this function contains the messages that are printed to screen and tracks the total number of warnings on each MAC address useing a dictionary in a similiar way to how to total count of tcp PSH packets is traked. The permenant warning and ban is contained within another function call `launch_perma_countermneasures()` with a similar warning message and warning tracking system as the temporary counter measures but with the addition of the permenant block rule which has a higher priorty and its hard_timeout and idle_timeout set to zero which means that the rule will never timeout with the application is running.
 
 
-## Generating the traffic
+### Generating the traffic
 
 The attack traffic and the normal traffic will be generated using the xnodes within mininet and using the hpin3 command.
 
-### normal traffic
+#### Normal traffic
 
 The traffic which will be sent from the normal user n1 to the victim v1 is generated as follows
 
@@ -51,7 +55,7 @@ hping3 22.0.0.1 -p 80 -d 120
 
 There is no need to specify to hping3 that we are using the TCP protocol as that is the default mode of hping3 anyway
 
-### flood traffic
+#### Flood traffic
 
 The traffic which will be sent from the attacker a1 to the victim v1 is generated as follows
 
@@ -65,6 +69,16 @@ hping3 22.0.0.1 -p 80 -P --flood
 - `--flood` this tells hping3 to send off the packets ass quickly as possible
 
 There is no need to specify to hping3 that we are using the TCP protocol as that is the default mode of hping3 anyway
+
+### Testing
+
+The application will be shown runnning live in the demonstration video. Some behind the scenes items that were tested included bringing up xterm windows for the attacker a1 and the normal user n1 and then having wireshark running on the victim v1. wireshark was setup with a filter to only show tcp traffic from port 80 so that we could easily identify the traffic that we are interested in. This means that wireshark will not show us other protocols such as ARP packets and ICMP packets. The normal traffic command above was then run inside the N1 xnode and we could see the traffic coming in through wireshark. the flood traffic command above was then run inside the a1 xnode and after a few seconds we can see the controller issues its first warning to the MAC address 00:00:00:00:00:02 which is the attackers address (can be found by using the command `ifconfig` inside the xnode or can be found in the setup of the network topology in project.yaml) and temporaryally bans all traffic from this address for 60 seconds. we can see that the flood traffic command breifly pauses as no response is being recived due to the temporary block rule.
+
+Waiting and watching the command terminals, after 60 seconds we soon see PSH packets flooding in again after the block rule times out. Every packet that comes into the controller is logged and printed on screen for debugging. the packet number and packet type is printed however, normally this information would not be printed. we can see that the attack starts up again from the a1 xnode terminal and the controller quickly issues a second warning and temporary ban. This cyccle will repeat once more after 60 seconds and finally a permanent block rule will be implemimplemented. There is a small delay when a warning is generated and a flow rule sent out as the sheer amount of packets the hping3 can see really does slow down the controller, This will allow some lingering packets to come into the controller but if there was no protection at all hping3 can easily send up to 50000 packets per second from initial testing. Setting the threshold at 2500 packets is still reasonable as when running the normal traffic command the which sends approximately 1 packet per send and even when `--fast` mode is used this is only a speed of 10 packets per second. This is 3 orders of magnatude less than the flood traffic and would take the normal user 42 minutes to meet this threshold which the attacker manages to do in about 2 seconds.
+
+
+
+
 
 
 
