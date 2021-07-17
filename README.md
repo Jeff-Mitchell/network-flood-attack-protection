@@ -1,5 +1,5 @@
 # CSC 7078 Secure Softwarized Networks
-## The Detection And Protection Again TCP PSH Floods
+## The Detection And Protection Against TCP PSH Floods
 ## Jeff Mitchell 40203212
 
 ### How To Install
