@@ -1,0 +1,69 @@
+root:
+  name: "PSHFlood"
+  description: "PSH Flood Attack Project"
+  pdf: ""
+  working_directory: "cwd/project"
+  topology:
+    switches:
+      - name: s1
+        dpid: 1
+        enabled: True
+    hosts:
+      - name: a1
+        ip: "11.0.0.1"
+        mac: "00:00:00:00:00:01"
+      - name: n1
+        ip: "11.0.0.2"
+        mac: "00:00:00:00:00:02"
+      - name: v1
+        ip: "22.0.0.1"
+        mac: "00:00:00:00:00:03"
+    links:
+      - [a1, s1, 1000]
+      - [n1, s1, 1000]
+      - [v1, s1, 1000]
+  
+  # traffic generation
+  traffic:
+    # specify all the profiles that should be used (in parallel!)
+    use_profiles:
+      - default
+
+  # specify traffic profiles for this scenario
+  traffic_profiles:
+    #  the default profile
+    - name: default
+      # estimated runtime of this schedule in seconds
+      runtime: 1
+      # grace time in seconds before performing a traffic analysis
+      wait_for_analaysis: 3
+      # automatically create the schedule with the parameters specified
+      type: auto
+      # evaluation schema: strict, progressive or disregard
+      evaluation: strict
+      # specify the parameters for the schedule
+      params: 
+        # generate x events in total
+        events: 25
+        # randomly select time range for a event between [a,b]
+        range_time: [1,10] 
+        # randomly select the amount of packets from the given array
+        choice_packets: [1000]
+        # randomly select a inter arrival time from the given array
+        choice_iat: ["1us"]
+        # randomly select a priority from the given array
+        choice_priority: [1]
+
+  # more advanced traffic generation parameters
+  trafgen:
+
+    # Specifies the (random) ips that are used in the traffic generator.
+    # This is required for setting up the network oracle in 
+    # the controller. The file is stored in the working directory of the
+    # scenario so this can be the same for all scenarios (no need to change).
+    deployment_file: "oracle/deployment.yaml"
+    
+    # Artifical delay for udp streams. The first packet is
+    # sent immediatly and all other packets are sent after a timeout
+    # that can be specified with this variable.
+    udp_first_packet_delay: 0.5
