@@ -23,7 +23,8 @@ sudo -E python3 remote/script_run_mininet.py /vagrant_data/local/apps/scenarios/
 This will create the virtual network as described by the topology diagram below and the IP and MAC addresses explained below. Moving over to the network controller pane of the tmux window, killing the currently running instance of that process  and running the bash command to fire up our Python network controller application:
 
 ```bash
-python3 -m py_compile local/apps/src/40203212.py && ryu-manager --use-stderr --nouse-syslog --log-conf "" local/apps/src/40203212.py
+python3 -m py_compile local/apps/src/40203212.py &&  
+ryu-manager --use-stderr --nouse-syslog --log-conf "" local/apps/src/40203212.py
 ```
 
 #### Overview
@@ -78,7 +79,7 @@ The attack traffic and the normal traffic will be generated using the XNodes wit
 
 The traffic which will be sent from the normal user N1 to the victim V1 is generated as follows
 
-```
+```bash
 hping3 22.0.0.1 -p 80 -d 120
 ```
 
@@ -92,7 +93,7 @@ There is no need to specify to hping3 that we are using the TCP protocol as that
 
 The traffic which will be sent from the attacker A1 to the victim V1 is generated as follows
 
-```
+```bash
 hping3 22.0.0.1 -p 80 -P --flood
 ```
 
@@ -124,3 +125,17 @@ Investigating the seemingly low hard limit of 1000 packets per second is down to
 The virtual machines resources were increased from 2GB of ram to 4GB and the processor core count was increased from 2 to 4. The test was run again, logging the normal traffic flow rate and the flood traffic flow rate and we can see that from below the maximum limit has now increased from 960 to approximately 1360 packets per second maximum, which is an increase of 400 packets per second or 42% improvement for doubling the resources of the controller.
 
 ![Traffic Graph 4GB RAM](tests/Normal vs Flood Traffic Packet Flow 4GB.png)
+
+### Known Issues
+
+The simple MAC addresses e.g. 00:00:00:00:00:01 may not work on your version of SDN-cockpit, to fix this issue go to file `sdn-cockpit\sync\remote\srcipt_run_mininet.py` and change line 81 which looks like:
+
+```python
+mn_host = net.addHost(name, ip = host.get("ip"),
+```
+
+to:
+
+```python
+mn_host = net.addHost(name, ip = host.get("ip"), mac = host.get("mac"),
+```
