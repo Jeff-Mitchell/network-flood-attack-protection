@@ -1,12 +1,12 @@
-# CSC 7078 Secure Softwarized Networks
-## The Detection And Protection Against TCP PSH Floods
-## Jeff Mitchell 40203212
+## CSC 7078 Secure Softwarized Networks
+### The Detection And Protection Against TCP PSH Floods
+### Jeff Mitchell 40203212
 
 ### How To Install
 
-The Python application can be downloaded above from the "src" folder. The file will be called 40203212.py and should be downloaded and copied into your version of SDN-cockpit into the folder found at `sdn-cockpit\sync\local\apps\src`. Similarly, the scenario file can be found above in the scenarios folder and the file 40203212.yaml should be copied to `sdn-cockpit\sync\local\apps\scenarios` 
+The Python application can be downloaded above from the "src" folder. The file will be called 40203212.py and should be downloaded and copied into your version of SDN-cockpit into the folder found at `sdn-cockpit\sync\local\apps\src`. Similarly, the scenario file can be found above in the scenario's folder, and the file 40203212.yaml should be copied to `sdn-cockpit\sync\local\apps\scenarios` 
 
-To begin using these files, SDN-cockpit must be up and running with XClient and XLaunch set up before starting SDN-cockpit to use XNodes for hosts for extra control of network traffic elements. Run the following commands after opening a git bash window inside the SDN-cockpit directory:
+To begin using these files, SDN-cockpit must be up and running with XClient and XLaunch set up before starting the SDN-cockpit to use XNodes for hosts for extra control of network traffic elements. Run the following commands after opening a git bash window inside the SDN-cockpit directory:
 
 ```
 vagrant up
@@ -27,9 +27,9 @@ python3 -m py_compile local/apps/src/40203212.py &&
 ryu-manager --use-stderr --nouse-syslog --log-conf "" local/apps/src/40203212.py
 ```
 
-#### Overview
+### Overview
 
-This is a Python SDN application intended to be run through SDN-cockpit. The Python application uses the ryu manager to detect and protect a victim from a TCP and specifically a PSH flood attack. The topology of the virtual net consists of 3 hosts all connected to a switch. The hosts are:
+This is a Python SDN application intended to be run through SDN-cockpit. The Python application uses the Ryu manager to detect and protect a victim from a TCP and specifically a PSH flood attack. The topology of the virtual net consists of 3 hosts all connected to a switch. The hosts are:
 
 1. A1 - This is our attacker and has the IP `11.0.0.1` and MAC 00:00:00:00:00:01
 1. N1 - This is our normal traffic user and has IP `11.0.0.2` and MAC 00:00:00:00:00:02
@@ -43,7 +43,7 @@ The setup of this project is to launch an attack from A1 to V1 and have the Pyth
 
 #### How The Code Works
 
-A total count of all packets is used to calculate an instant network load to help with analysis. All of the above allows our controller to work naturally with all hosts on the network seamlessly. Now we can begin to narrow down the packet type that we are going to look at. Using the previously extracted TCP data from each packet, we can further refine the Python application to look for packets that meet the specific TCP_PSH flag.
+A total count of all packets is used to calculate an instant network load to help with analysis. All the above allows our controller to work naturally with all hosts on the network seamlessly. Now we can begin to narrow down the packet type that we are going to look at. Using the previously extracted TCP data from each packet, we can further refine the Python application to look for packets that meet the specific TCP_PSH flag.
 
 The controller also keeps a running dictionary of all the IP addresses which have sent PSH packets through the network and includes a PSH packet count on a per MAC address basis. This is done using the following
 
@@ -53,7 +53,7 @@ tcp_psh_packets_by_ip = dict()
 
 The Python file contains a function called `detect_tcp_psh_packets()` which is called from the `packet_in handler` on every packet received but only executes when the `packet_in` is a TCP type packet that has the `TCP_PSH` flag set. This results in the function returning true and increasing the PSH packet count for the specific MAC address provided by arguments passed through the function.
 
-This function is where all of the PSH packet analysis occurs. An attacker who floods the controller with PSH packets will quickly hit the limit set by the function. After some experimenting,l the limit has been set to around 2500 PSH packets and then the attacker will be issued a warning to stop flooding the network, followed by a 60-second traffic ban through the use of a flow rule which will drop all packets with a 60-second `hard_timeout` and `idle_timeout`.
+This function is where all the PSH packet analysis occurs. An attacker who floods the controller with PSH packets will quickly hit the limit set by the function. After some experimenting,l the limit has been set to around 2500 PSH packets and then the attacker will be issued a warning to stop flooding the network, followed by a 60-second traffic ban through the use of a flow rule which will drop all packets with a 60-second `hard_timeout` and `idle_timeout`.
 
 A downside of this approach is that while a flood attacker will quickly reach the 2500 limit and be blocked, any normal traffic users on the network will slowly tick up to this limit over a longer period (approximately 42 minutes) and then the normal user's traffic will start getting blocked. This has been avoided by implementing an additional timing function that calculates the time between packets and calculated the speed of the flow of packets per second. There has been a limit of 50 packets per second set on the network, which is more than enough for normal traffic users but very quickly spikes and continues growing during a flood attack.
 
@@ -65,7 +65,7 @@ As normal, the flood attack easily increases the packet flow above 50 and then t
 
 If this was not an attack and just heavy traffic flow for another reason, they will be allowed to start sending traffic again after 60 seconds and should make sure to limit their traffic flow as to not trigger the flood protection again.
 
-If this was a real attack and the PSH flood starts again after the first temporary warning and ban, the attacker is given up to a total of 3 three temporary warnings and bans before a permanent block rule is placed on the attacker's MAC address, indefinitely blocking all traffic from this source until further review.
+If this was a real attack, and the PSH flood starts again after the first temporary warning and ban, the attacker is given up to a total of 3 three temporary warnings and bans before a permanent block rule is placed on the attacker's MAC address, indefinitely blocking all traffic from this source until further review.
 
 The temporary bans and warnings are put in place by calling the `launch_temp_countermeasures()` function and passing in the attacker's MAC address as an argument. This function contains the messages that are printed to screen and tracks the total number of warnings on each MAC address using a dictionary in a similar way that the total count of TCP PSH packets is tracked.
 
@@ -106,7 +106,7 @@ There is no need to specify to hping3 that we are using the TCP protocol as that
 
 ### Known Issues
 
-The simple MAC addresses e.g. 00:00:00:00:00:01 may not work on your version of SDN-cockpit, to fix this issue go to file `sdn-cockpit\sync\remote\srcipt_run_mininet.py` and change line 81 which looks like:
+The simple MAC addresses e.g., 00:00:00:00:00:01 may not work on your version of SDN-cockpit, to fix this issue go to file `sdn-cockpit\sync\remote\srcipt_run_mininet.py` and change line 81 which looks like:
 
 ```python
 mn_host = net.addHost(name, ip = host.get("ip"),
