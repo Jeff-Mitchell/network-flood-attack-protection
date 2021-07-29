@@ -106,6 +106,8 @@ There is no need to specify to hping3 that we are using the TCP protocol as that
 
 ### Known Issues
 
+#### Simple MAC Addresses
+
 The simple MAC addresses e.g., 00:00:00:00:00:01 may not work on your version of SDN-cockpit, to fix this issue go to file `sdn-cockpit\sync\remote\srcipt_run_mininet.py` and change line 81 which looks like:
 
 ```python
@@ -117,3 +119,7 @@ to:
 ```python
 mn_host = net.addHost(name, ip = host.get("ip"), mac = host.get("mac"),
 ```
+
+#### Warnings Appearing Multiple Times
+
+As shown in the demonstration video when using the `--flood` argument with hping3 the warnings can be issued multiple times due to the sheer amount of packets that can be sent into the network. This is an unintended consequence of the controller slowing down due to the flood traffic which is exactly what a flood attack is designed to do however the slowing down of the controller only affects the loop which tracks the number of warnings issued to that MAC address. As shown in the video this doesn't cause any issues and ends up protecting the network more effectively because if you can send traffic into the network so quickly that the loop iterates more times than it should, it results in the flood attacker being banned from the network quicker than normally by having multiple temporary warnings issued at the same time.

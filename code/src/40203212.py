@@ -202,4 +202,4 @@ class Project(SDNApplication):
         pkt_time = time_elapsed / self.total_packets
         self.pkt_flow = (1 / pkt_time) / 2
         self.pkt_flow_3dp = round(self.pkt_flow, 3)
-        print("[ Packet Flow: {:>5} pkts/sec (Packets per Second) ]".format(self.pkt_flow_3dp))
+        # print("[ Packet Flow: {:>5} pkts/sec (Packets per Second) ]".format(self.pkt_flow_3dp))
