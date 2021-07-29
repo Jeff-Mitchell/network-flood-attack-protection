@@ -1,0 +1,29 @@
+root:
+  name: "PSHFlood"
+  description: "PSH Flood Attack Project"
+  pdf: ""
+  working_directory: "cwd/project"
+  topology:
+    switches:
+      - name: s1
+        dpid: 1
+        enabled: True
+    hosts:
+      - name: a1
+        ip: "11.0.0.1"
+        mac: "00:00:00:00:00:01"
+      - name: n1
+        ip: "11.0.0.2"
+        mac: "00:00:00:00:00:02"
+      - name: v1
+        ip: "22.0.0.1"
+        mac: "00:00:00:00:00:03"
+    links:
+      - [a1, s1, 1000]
+      - [n1, s1, 1000]
+      - [v1, s1, 1000]
+  
+  # traffic generation
+  traffic:
+    # specify all the profiles that should be used (in parallel!)
+    use_profiles: [] # None

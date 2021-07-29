@@ -1,4 +1,4 @@
-# Importing Modules
+# Importing Required Modules
 from controller import SDNApplication
 from ryu.base import app_manager
 from ryu.controller import ofp_event
@@ -12,6 +12,8 @@ from ryu.lib.packet import ethernet, arp, ipv4, ipv6, tcp
 from netaddr import IPAddress, IPNetwork
 import time
 
+
+# tm task=project
 
 class Project(SDNApplication):
     # Learning Switch Code
@@ -42,7 +44,7 @@ class Project(SDNApplication):
         # print(end_time)
         self.get_time(end_time)
 
-        # Get Datapath ID To Identify OpenFlow1.3 Switches
+        # Get Datapath ID To Identify OpenFlow Switches
         dpid = datapath.id
         self.mac_to_port.setdefault(dpid, {})
 
@@ -81,7 +83,7 @@ class Project(SDNApplication):
 
         # Construct packet_out Message And Send It
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=ofproto.OFP_NO_BUFFER, in_port=in_port, actions=actions,
-                                data=msg.data)
+                                  data=msg.data)
         datapath.send_msg(out)
 
         # Retrieve the TCP part of the packet
@@ -96,9 +98,11 @@ class Project(SDNApplication):
         if tcp_pkt.has_flags(tcp.TCP_PSH):
             # Detecting Only The TCP PSH Packets And Not PSH-ACK Packets
             if not tcp_pkt.has_flags(tcp.TCP_ACK):
+                # Debugging Print Statement
+                # print("This Is A TCP PSH Packet")
                 self.detect_tcp_psh_packets(datapath, in_port, eth_src, eth_dst)
 
-    end_time = self.start_time
+        end_time = self.start_time
 
     # Count The Number Of TCP PSH Packets From All IP Addresses
     # And Protects The Network Based On A TCP PSH Packet Limit Per IP Address
@@ -112,32 +116,32 @@ class Project(SDNApplication):
         # print("[  " + repr(self.total_packets) + "  ]" + "  PSH PACKET")
         self.tcp_psh_packet_by_ip[eth_src] += 1
 
-        # in_port Should Be The Victims Port Allowing Infinite Traffic Out
+        # in_port Should NOT Be The Victims Port Allowing Infinite Traffic Out
         if in_port != 3:
             # Counter Only Begins Counting Potential TCP PSH Packets,
             # Once pkt_flow > 50 Packets per Second
             # If Traffic Flow Is Less Than 50 Packets Per Second,
-            # There Is No Need Tracking Traffic
+            # There Is No Need To Track Traffic
             if self.pkt_flow > 50:
                 if self.tcp_psh_packet_by_ip[eth_src] > 25000:
-                    # Potential TCP Flood
+                    # Potential TCP PSH Flood
                     if eth_src not in self.warnings:
                         # Set Initial Warning Count
                         self.warnings[eth_src] = 0
 
-                    if self.warnings[eth_src] <= 3:
+                    elif self.warnings[eth_src] < 3:
                         # Increase Warning Count
                         self.warnings[eth_src] += 1
                         self.launch_temp_countermeasures(datapath, eth_src)
 
-                    if self.warnings[eth_src] > 3:
+                    elif self.warnings[eth_src] >= 3:
                         # Increase Warning Count
                         # Doesnt Get Called Again But Can Be Used To Still Track Total Warnings Later
-                        self.warnings[eth_src] += 1
+                        # self.warnings[eth_src] += 1
                         self.launch_perma_countermeasures(datapath, eth_src)
 
-        # Calculating A Network Load Value
-        self.network_load = ((self.tcp_psh_packet_by_ip[eth_src]) / self.total_packets * 100)
+        # Calculating A Network TCP Load Value
+        # self.network_load = ((self.tcp_psh_packet_by_ip[eth_src]) / self.total_packets * 100)
         # Print Network Load For Debugging
         # print("Network Load: "+repr(self.network_load)+" %")
 
@@ -145,8 +149,8 @@ class Project(SDNApplication):
     def launch_temp_countermeasures(self, datapath, eth_src):
 
         # Messages
-        warning_msg = "!!Warning, Please Stop Flooding The network!!"
-        temp_ban_msg = "Temporary IP Address Ban For " + repr(eth_src) + " For 60 Seconds"
+        warning_msg = "!!Warning, Please Stop Flooding The Network!!"
+        temp_ban_msg = "Temporary MAC Address Ban For " + repr(eth_src) + " For 60 Seconds"
 
         # Deploys A Block Flow Rule based On Source MAC Addresses
         match = parser.OFPMatch(eth_type=ether_types.ETH_TYPE_IP, eth_src=eth_src)
@@ -168,8 +172,8 @@ class Project(SDNApplication):
     def launch_perma_countermeasures(self, datapath, eth_src):
 
         # Messages
-        warning_msg = "!!Warning, Please Stop Flooding The network!!"
-        perma_ban_msg = "Permanent IP Address Ban For " + repr(eth_src) + " Indefinitely"
+        warning_msg = "!!Warning, Please Stop Flooding The Network!!"
+        perma_ban_msg = "Permanent MAC Address Ban For " + repr(eth_src) + " Indefinitely"
 
         # Deploys A Block Flow Rule Based On Source MAC Addresses
         match = parser.OFPMatch(eth_type=ether_types.ETH_TYPE_IP, eth_src=eth_src)
@@ -189,11 +193,13 @@ class Project(SDNApplication):
 
     # Time Function For Packets
     def get_time(self, end_time):
+
         time_elapsed = end_time - self.start_time
         # Total Packets Divided By 2 As The PSH Packets Are Responded To With A RST-ACK
         # So PSH Packets Only Make Up Half Of The Total Count
+        # (Counting Only The Incoming Packets, Not Outgoing Hence Divided By 2)
         # Time Function Is Accurate For All Packet Types Which Reply To The Initial Packet
-        pkt_time = time_elapsed / (self.total_packets / 2)
-        self.pkt_flow = 1 / pkt_time
+        pkt_time = time_elapsed / self.total_packets
+        self.pkt_flow = (1 / pkt_time) / 2
         self.pkt_flow_3dp = round(self.pkt_flow, 3)
-        # print("[ Packet Flow: {:<5} pkts/sec (Packets per Second) ]".format(self.pkt_flow_3dp))
+        print("[ Packet Flow: {:>5} pkts/sec (Packets per Second) ]".format(self.pkt_flow_3dp))

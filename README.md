@@ -69,9 +69,9 @@ If this was a real attack, and the PSH flood starts again after the first tempor
 
 The temporary bans and warnings are put in place by calling the `launch_temp_countermeasures()` function and passing in the attacker's MAC address as an argument. This function contains the messages that are printed to screen and tracks the total number of warnings on each MAC address using a dictionary in a similar way that the total count of TCP PSH packets is tracked.
 
-The permanent warning and ban are contained within another function call `launch_perma_countermneasures()` with a similar warning message and warning tracking system as the temporary countermeasures, but with the addition of the permanent block rule which has a higher priority and its hard_timeout and idle_timeout set to zero, which means that the rule will never timeout with the application running.
+The permanent warning and ban are contained within another function call `launch_perma_countermneasures()` with a similar warning message and warning tracking system as the temporary countermeasures, but with the addition of the permanent block rule which has a higher priority and its hard_timeout and idle_timeout set to zero, which means that the rule will never time out with the application running.
 
-### Generating the traffic
+### Generating The Traffic
 
 The attack traffic and the normal traffic will be generated using the XNodes within mininet and using the hping3 command.
 

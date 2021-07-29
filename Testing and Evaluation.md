@@ -14,11 +14,11 @@ The graph above can be summarised into 5 distinct stages. The first stage is the
 
 Investigating the seemingly low hard limit of 1000 packets per second is down to the number of resources the virtual machine is allowed to use from the host machine. When running SDN-cockpit for the first time the default resources that it was allowed to use from the host machine was 2 GB of RAM and 2 processor cores, this is more than enough for the normal traffic on the network, and it wasn't until we started testing the flood attack that we spotted the maximum packet flow was not even close to the number of packets per second it should have been. Below is a graph that shows the packet flow rate in packets per second for a normal traffic user (14-16 packets per second) on the blue line, and the packet flow rate for an active flood attack (950-960 packets per second) on the network on the orange line sampled over 10 seconds after running for some time to stabilise. These results were recorded with the virtual machine using its default amount of resources.
 
-![Traffic Graph 2GB Ran](tests/Normal vs Flood Traffic Packet Flow 2GB.png)
+![Traffic Graph 2 GB RAM](tests/Normal vs Flood Traffic Packet Flow 2GB.png)
 
 The virtual machines resources were increased from 2 GB of ram to 4 GB, and the processor core count was increased from 2 to 4. The test was run again, logging the normal traffic flow rate, and the flood traffic flow rate, and we can see that from below the maximum limit has now increased from 960 to approximately 1360 packets per second maximum, which is an increase of 400 packets per second or 42% improvement for doubling the resources of the controller.
 
-![Traffic Graph 4GB RAM](tests/Normal vs Flood Traffic Packet Flow 4GB.png)
+![Traffic Graph 4 GB RAM](tests/Normal vs Flood Traffic Packet Flow 4GB.png)
 
 Some screenshots showing specific features of the Python application in action such as when the packet flow logs are enabled which can be seen below followed by other screenshots where this log is turned off so that other messages can be seen such as the flood warning messages and temporary and permanent ban functions being called.
 
